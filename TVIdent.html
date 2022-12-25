@@ -1,0 +1,148 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta http-equiv="Content-Type" content="text/html;charset=utf-8" >
+<title>3D Gasket for TV Ident</title>
+<link href='https://fonts.googleapis.com/css?family=Lexend Deca' rel='stylesheet'>
+<link rel="stylesheet" href="style.css">
+
+<script id="vertex-shader" type="x-shader/x-vertex">
+attribute vec4 vPosition;
+attribute vec4 vColor;
+varying vec4 fcolor;
+
+uniform vec3 theta;
+uniform float scale;
+uniform vec3 translate;
+
+void main()
+{
+    // Compute the sines and cosines of theta for each of
+    //   the three axes in one computation.
+    vec3 angles = radians( theta );
+    vec3 c = cos( angles );
+    vec3 s = sin( angles );
+
+    // Remeber: these matrices are column-major
+    mat4 rx = mat4( 1.0,  0.0,  0.0, 0.0,
+		    0.0,  c.x,  s.x, 0.0,
+		    0.0, -s.x,  c.x, 0.0,
+		    0.0,  0.0,  0.0, 1.0 );
+
+    mat4 ry = mat4( c.y, 0.0, -s.y, 0.0,
+		    0.0, 1.0,  0.0, 0.0,
+		    s.y, 0.0,  c.y, 0.0,
+		    0.0, 0.0,  0.0, 1.0 );
+
+
+    mat4 rz = mat4( c.z, -s.z, 0.0, 0.0,
+		    s.z,  c.z, 0.0, 0.0,
+		    0.0,  0.0, 1.0, 0.0,
+		    0.0,  0.0, 0.0, 1.0 );
+    
+    mat4 rotationMatrix = rz * ry * rx;
+
+    mat4 scaleMatrix = mat4( scale, 0.0, 0.0, 0.0,
+            0.0,  scale, 0.0, 0.0,
+            0.0,  0.0, scale, 0.0,
+            0.0,  0.0, 0.0, 1.0 );
+
+    mat4 translateMatrix = mat4(1.0, 0.0, 0.0, 0.0,
+                                0.0, 1.0, 0.0, 0.0,
+                                0.0,  0.0, 1.0, 0.0,
+                                translate.x, translate.y, translate.z, 1.0 );
+
+    gl_Position = translateMatrix * scaleMatrix * rotationMatrix  * vPosition;
+    fcolor = vColor;
+}
+</script>
+
+<script id="fragment-shader" type="x-shader/x-fragment">
+precision mediump float;
+varying vec4 fcolor;
+
+void main()
+{
+    gl_FragColor = fcolor;
+}
+</script>
+
+<script type="text/javascript" src="Common/webgl-utils.js"></script>
+<script type="text/javascript" src="Common/initShaders.js"></script>
+<script type="text/javascript" src="Common/MV.js"></script>
+<script type="text/javascript" src="gasket.js"></script>
+</head>   
+
+
+<body>
+<section class="interface">
+
+    <div id="control-panel">
+        <p>3D Gasket settings</p>
+
+        <div class="colors">
+            <label>Colors</label>
+            <div class="colorFaces">
+                <div class="faces">
+                    <label>Face 1</label>
+                    <label>Face 2</label>
+                    <label>Face 3</label>
+                    <label>Face 4</label>
+                </div>
+                
+                <div class="typeColor">
+                    <input type="color" class="colorpicker" name="color1" value="#80E5FF">
+                    <input type="color" class="colorpicker" name="color2" value="#1258FD">
+                    <input type="color" class="colorpicker" name="color3" value="#47E160">                    
+                    <input type="color" class="colorpicker" name="color4" value="#FFFF00">
+                </div>               
+            </div>   
+        </div>
+
+        <div class="numSubDiv">
+            <label>Number of subdivisions</label>
+            <span class="sliderSpace"><input class="slider" type="range" min="1" max="5" step="1" value="2"></span>
+            <label class="value">2</label> 
+        </div>
+        
+        <div class="speedAnim">
+            <label>Animation speed </label>
+            <span class="speedSpace"></span><input class="slider" type="range" min="0.5" max="2.0" step="0.25" value="1.0"></span>
+            <span class="speedValue"><label class="value">1.0</label><span style="color: white">x</span></span>
+        </div>
+
+        <div class="initScale">
+            <label>Initial Scale </label>
+            <select id="controls">
+                <option value="0">Small</option>
+                <option value="1" selected="selected">Normal</option>
+                <option value="2">Medium</option>
+                <option value="3">Large</option>
+                <option value="4">Extra Large</option>
+            </select>
+        </div>
+
+        <div class="transMode">
+            <label>Translation Mode </label>
+            <select id="translationMode">
+                <option value="0">Flipping Star</option>
+                <option value="1">Dancing Star</option>
+                <option value="2">Shooting Star</option>
+                <option value="3" selected="selected">Default</option>
+            </select>
+        </div>
+
+        <button id="StartBtn" class="btnText">Start</button>
+
+    </div>
+
+    <div>
+        <canvas id="gl-canvas" width="600" height="600">
+            Oops ... your browser doesn't support the HTML5 canvas element
+        </canvas>
+    </div>
+    
+</section>    
+
+</body>
+</html>
